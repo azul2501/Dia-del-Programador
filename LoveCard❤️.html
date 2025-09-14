@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lora:ital,wght@1,400&family=Parisienne&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💌</text></svg>">
+  <title>Un Mensaje Especial para Ti</title>
+
+  <style>
+    :root{
+      --color-fondo-gradiente-1:#e0c3fc;--color-fondo-gradiente-2:#8ec5fc;--color-sobre-cuerpo:#ffdde1;
+      --color-sobre-solapa:#eeb7c2;--color-sobre-solapa-superior:#fbe2e7;--color-carta:#fdfbfb;--color-sello:#cf425c;
+      --color-sombra-fuerte:rgba(0,0,0,.25);--color-sombra-suave:rgba(0,0,0,.1);--color-texto:#3a3a3a;--color-firma:#c91515;
+      --fuente-titulo:'Great Vibes',cursive;--fuente-fecha:'Lora',serif;--fuente-carta:'Parisienne',cursive;--duracion-apertura:1.7s
+    }
+    /* Loader */
+    #loader{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:1000;background:#f0f0f0;transition:opacity .7s,visibility .7s}
+    #loader.hidden{opacity:0;visibility:hidden}
+    .loader-icon{font-size:80px;color:var(--color-sello)}
+    .progress-bar-container{width:250px;height:15px;background:#e0e0e0;border-radius:10px;overflow:hidden;margin-top:20px;box-shadow:inset 0 1px 3px rgba(0,0,0,.1)}
+    .progress-bar{width:0;height:100%;background:var(--color-sello);border-radius:10px;transition:width .3s}
+    #progress-percentage{margin-top:10px;font-family:'Lora',serif;font-size:1rem;color:#555}
+
+    body{margin:0;padding:20px;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box;
+      background:linear-gradient(135deg,var(--color-fondo-gradiente-1) 0%,var(--color-fondo-gradiente-2) 100%),
+      url('https://drive.google.com/thumbnail?id=1uv9wOVYu8h8PbX4EDBPl4YUm0ZMYNOj1&sz=w1000');
+      background-size:cover;background-position:center;background-blend-mode:screen;overflow:hidden;
+      user-select:none;-webkit-tap-highlight-color:transparent}
+    .main-content{display:flex;flex-direction:column;align-items:center;transition:transform .5s}
+    h1{font-family:var(--fuente-titulo);font-size:clamp(2.5rem,10vw,5rem);color:#f63afd93;text-shadow:3px 3px 10px var(--color-sombra-fuerte);text-align:center;margin-bottom:40px;line-height:1.1}
+
+    .contenedor{perspective:1500px}
+    .envoltura-sobre{position:relative;width:320px;height:220px;cursor:pointer;filter:drop-shadow(0 20px 25px var(--color-sombra-fuerte));animation:latido 2.5s cubic-bezier(.4,0,.2,1) infinite}
+    .envoltura-sobre.abierto,.envoltura-sobre.cerrando{animation:none}
+    @keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+
+    .sobre{position:absolute;inset:0;background:var(--color-sobre-cuerpo);border-radius:15px;box-shadow:inset 0 0 30px var(--color-sombra-suave)}
+    .sobre::before{content:'';position:absolute;inset:0;border-radius:15px;background:linear-gradient(225deg,var(--color-sobre-cuerpo) 50%,var(--color-sobre-solapa) 50%);opacity:0;transition:opacity .5s calc(var(--duracion-apertura)*.5)}
+    .envoltura-sobre.abierto .sobre::before{opacity:1}
+
+    .solapa{position:absolute;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+    .solapa::after{content:'';position:absolute;inset:0;filter:drop-shadow(0 0 2px var(--color-sombra-suave));transform:translateZ(-1px)}
+    .solapa-superior{top:0;left:0;width:100%;height:55%;background:var(--color-sobre-solapa-superior);clip-path:polygon(0 0,100% 0,50% 100%);border-radius:15px 15px 0 0;transform-origin:top;z-index:6}
+    .solapa-izquierda{top:0;left:0;width:52%;height:100%;background:var(--color-sobre-solapa);clip-path:polygon(0 0,100% 50%,0 100%);border-radius:15px 0 0 15px;transform-origin:left;z-index:5;transition-delay:.35s}
+    .solapa-derecha{top:0;right:0;width:52%;height:100%;background:var(--color-sobre-solapa);clip-path:polygon(100% 0,0 50%,100% 100%);border-radius:0 15px 15px 0;transform-origin:right;z-index:5;transition-delay:.35s}
+
+    .corazon{position:absolute;top:50%;left:50%;width:30px;height:30px;background:var(--color-sello);transform:translate(-50%,-70%) rotate(45deg);z-index:10;transition:transform .5s .2s,opacity .5s .2s}
+    .corazon::before,.corazon::after{content:'';position:absolute;width:30px;height:30px;background:inherit;border-radius:50%}
+    .corazon::before{top:-15px;left:0}.corazon::after{top:0;left:-15px}
+    .corazon:hover,.corazon:active{animation:temblor-corazon .4s linear infinite}
+    @keyframes temblor-corazon{
+      0%{transform:translate(-50%,-70%) rotate(45deg) scale(1)}
+      25%{transform:translate(-50%,-70%) rotate(42deg) scale(1.1)}
+      50%{transform:translate(-50%,-70%) rotate(45deg) scale(1.2)}
+      75%{transform:translate(-50%,-70%) rotate(48deg) scale(1.1)}
+      100%{transform:translate(-50%,-70%) rotate(45deg) scale(1)}
+    }
+
+    .carta{position:fixed;top:50%;left:50%;width:320px;height:220px;transform:translate(-50%,-40%) scale(1);opacity:0;z-index:1;pointer-events:none;background:var(--color-carta);border-radius:10px;padding:25px;box-sizing:border-box;
+      background-image:url('https://drive.google.com/thumbnail?id=1MD6SmwkJ_5hhSCON1E9oUV6CJqL2BTKb&sz=w1000');background-size:cover;background-position:center;background-blend-mode:screen;background-color:rgba(255,255,255,.6)}
+    .envoltura-sobre.abierto .carta{animation:animacion-abrir-carta var(--duracion-apertura) .7s forwards cubic-bezier(.18,.89,.32,1.28);pointer-events:auto}
+    .envoltura-sobre.cerrando .carta{animation:animacion-cerrar-carta 1.2s forwards cubic-bezier(.6,-.28,.74,.05)}
+    .envoltura-sobre.abierto .solapa-superior{transform:rotateX(180deg);z-index:0}
+    .envoltura-sobre.abierto .solapa-izquierda{transform:rotateY(180deg);transition-delay:.3s;z-index:0}
+    .envoltura-sobre.abierto .solapa-derecha{transform:rotateY(-180deg);transition-delay:.3s;z-index:0}
+    .envoltura-sobre.abierto .corazon{transform:translateY(-200px) scale(.5);opacity:0;animation:none}
+
+    @keyframes animacion-abrir-carta{
+      0%{transform:translate(-50%,-40%) scale(1);opacity:0;z-index:1}
+      40%{transform:translate(-50%,-100%) scale(1.1);opacity:1;z-index:20}
+      100%{transform:translate(-50%,-50%) scale(1.2);opacity:1;z-index:30;width:90vw;height:90vh;max-width:700px;max-height:900px;top:50%}
+    }
+    @keyframes animacion-cerrar-carta{
+      0%{transform:translate(-50%,-50%) scale(1.2);opacity:1;z-index:30;width:90vw;height:90vh;max-width:700px;max-height:900px;top:50%}
+      60%{transform:translate(-50%,-100%) scale(1.1);opacity:1;z-index:20}
+      100%{transform:translate(-50%,-40%) scale(1);opacity:0;z-index:1;width:320px;height:220px}
+    }
+
+    .contenido{color:var(--color-texto);font-family:var(--fuente-carta);width:100%;height:100%;overflow:auto;padding-right:15px}
+    .contenido .fecha{display:block;text-align:right;font-size:1.1rem;font-family:var(--fuente-fecha);font-style:italic;color:#888;margin-bottom:20px}
+    .contenido .saludo{font-size:2.2rem;margin-bottom:15px}
+    .contenido .cuerpo{font-size:1.6rem;line-height:1.5;margin-bottom:20px}
+    .contenido .firma{font-size:2.5rem;text-align:right;color:var(--color-firma);margin:0}
+
+    .bloque-firma{display:flex;align-items:flex-end;justify-content:flex-end;gap:20px;margin-top:30px}
+    .imagen-recuerdo{width:150px;height:auto;border-radius:8px}
+
+    @media (max-width:768px){
+      .main-content{transform:translateY(-5vh)}
+      h1{font-size:2.9rem}
+      .envoltura-sobre{width:280px;height:193px}
+      .contenido{padding-right:5px}
+      .contenido .saludo{font-size:1.5rem}
+      .contenido .cuerpo{font-size:1rem}
+      .contenido .firma{font-size:1.5rem;text-align:center}
+      .bloque-firma{flex-direction:column;align-items:center;gap:20px}
+      .imagen-recuerdo{order:0;width:70%;max-width:100px}
+    }
+
+    .corazon-magico{position:fixed;font-size:var(--fs);text-shadow:0 0 10px rgba(255,255,255,.7);pointer-events:none;opacity:0;animation:corazon-magico-anim var(--dur) ease-out forwards}
+    @keyframes corazon-magico-anim{
+      0%{opacity:0;transform:translate(0,0) scale(.8) rotate(0)}
+      25%{opacity:1;transform:translate(var(--x-mid),var(--y-mid)) scale(1.8) rotate(var(--r-mid))}
+      100%{opacity:0;transform:translate(var(--x-end),var(--y-end)) scale(var(--s-end)) rotate(var(--r-end))}
+    }
+
+    /* Pie mini “hecho por…” */
+    .footer-love{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);font:600 12px/1.2 'Lora',serif;color:#6b2b3b;background:rgba(255,255,255,.6);padding:6px 10px;border-radius:999px;box-shadow:0 4px 10px rgba(0,0,0,.08)}
+  </style>
+</head>
+<body>
+  <!-- ⚙️ Personalización -->
+  <script>
+    const PROGRAMADOR = "Anderson";   // <- tu nombre
+    const NOVIA       = "Yadira";      // <- su nombre
+    const OCASION     = "Porque te amo"; // aniversario, cumple, o deja este texto
+  </script>
+
+  <!-- Loader -->
+  <div id="loader">
+    <div class="loader-icon">💌</div>
+    <div class="progress-bar-container"><div id="progress-bar" class="progress-bar"></div></div>
+    <div id="progress-percentage">0%</div>
+  </div>
+
+  <main class="main-content">
+    <h1 id="titulo">Un Mensaje Especial para Ti</h1>
+
+    <div class="contenedor">
+      <div class="envoltura-sobre">
+        <div class="sobre"></div>
+        <div class="solapa solapa-superior"></div>
+        <div class="solapa solapa-derecha"></div>
+        <div class="solapa solapa-izquierda"></div>
+        <div class="corazon" aria-hidden="true"></div>
+
+        <div class="carta" role="dialog" aria-modal="true" aria-label="Carta de amor">
+          <div class="contenido">
+            <span class="fecha" id="fecha">Donde el tiempo no existe</span>
+
+            <p class="saludo" id="saludo">Mi estrella guía,</p>
+
+            <!-- 💬 Texto personalizado: programador + novia -->
+            <p class="cuerpo" id="cuerpo1">
+              Soy <strong id="soy-programador"></strong>, tu programador favorito 💻✨,
+              y esta carta web la escribí línea por línea pensando en ti, <strong id="tu-novia"></strong>.
+            </p>
+            <p class="cuerpo" id="cuerpo2">
+              Entre funciones y estilos, descubrí que el mejor <em>framework</em> para mi vida
+              eres tú. Cada animación late al ritmo de mi corazón cuando estás cerca.
+            </p>
+            <p class="cuerpo" id="cuerpo3">
+              No eres un capítulo en mi historia, <strong>eres el libro entero</strong>. Gracias por ser
+              mi calma en medio del caos y mi más bonita casualidad. Prometo seguir
+              construyendo contigo, <em>commit</em> a <em>commit</em>, un amor que haga <em>deploy</em> todos los días. ❤️
+            </p>
+
+            <div class="bloque-firma">
+              <img src="https://drive.google.com/thumbnail?id=1SsZk-dSh2jGsS2kGgCqhZIgeD9ZUi_jM" alt="Nuestro recuerdo" class="imagen-recuerdo">
+              <p class="firma" id="firma">Con amor infinito,<br>—</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <span class="footer-love" id="footer-pill">Hecho con ♥ por un programador, para su persona favorita</span>
+
+  <!-- Música -->
+  <audio id="sound" src="https://dl.dropboxusercontent.com/scl/fi/esct592hxwzjyf9a2egpc/Si-supieras-lo-que-siento-con-mirarte....mp3?rlkey=xqbaohnpyd7b3mejkvvdg6dlq&st=2vagx61x&dl=1" type="audio/mpeg" preload="auto"></audio>
+
+  <script>
+    // -------- rellenar textos dinámicos (nombres/fecha/ocasión) ----------
+    (function initTextos() {
+      const tz = "America/Lima";
+      const hoy = new Date().toLocaleDateString("es-PE", { timeZone: tz, year:"numeric", month:"long", day:"numeric" });
+      document.getElementById("fecha").textContent = `${OCASION} — ${hoy}`;
+      document.getElementById("saludo").textContent = `Para ti, ${NOVIA},`;
+      document.getElementById("soy-programador").textContent = PROGRAMADOR;
+      document.getElementById("tu-novia").textContent = NOVIA;
+      document.getElementById("firma").innerHTML = `Con amor infinito,<br>${PROGRAMADOR}`;
+      document.getElementById("titulo").textContent = `De ${PROGRAMADOR} para ${NOVIA}`;
+      document.getElementById("footer-pill").textContent = `Hecho con ♥ por ${PROGRAMADOR} para ${NOVIA}`;
+    })();
+
+    // -------- loader de imágenes y arranque ----------
+    window.addEventListener('load', () => {
+      const loader = document.getElementById('loader');
+      const progressBar = document.getElementById('progress-bar');
+      const percentageText = document.getElementById('progress-percentage');
+
+      const imageUrls = [
+        'https://drive.google.com/thumbnail?id=1uv9wOVYu8h8PbX4EDBPl4YUm0ZMYNOj1',
+        'https://drive.google.com/thumbnail?id=1MD6SmwkJ_5hhSCON1E9oUV6CJqL2BTKb',
+        'https://drive.google.com/thumbnail?id=1SsZk-dSh2jGsS2kGgCqhZIgeD9ZUi_jM'
+      ];
+      let imagesLoaded = 0, totalImages = imageUrls.length;
+
+      const imageLoaded = () => {
+        imagesLoaded++;
+        const percent = Math.round((imagesLoaded / totalImages) * 100);
+        progressBar.style.width = percent + '%';
+        percentageText.textContent = percent + '%';
+        if (imagesLoaded === totalImages) setTimeout(startApp, 500);
+      };
+
+      if (totalImages === 0) { startApp(); return; }
+      imageUrls.forEach(url => { const img = new Image(); img.onload = imageLoaded; img.onerror = imageLoaded; img.src = url; });
+
+      function startApp(){
+        loader.classList.add('hidden');
+        loader.addEventListener('transitionend', initializeLetter, { once:true });
+      }
+    });
+
+    // -------- lógica de la carta (tu versión + pequeñas mejoras) ----------
+    function initializeLetter() {
+      const envoltura = document.querySelector(".envoltura-sobre");
+      const carta = document.querySelector(".carta");
+      const sonido = document.getElementById("sound");
+
+      let isAnimating = false, cartaAbierta = false;
+      const esMovil = window.innerWidth <= 768;
+
+      function gestionarAnimacion(accion){
+        if (isAnimating) return;
+        isAnimating = true;
+
+        if (accion === 'abrir'){
+          envoltura.classList.add('abierto');
+          sonido?.play().catch(()=>{});
+          if (esMovil){
+            setTimeout(()=>{
+              carta.style.top = '15px';
+              carta.style.transform = 'translateX(-50%)';
+              carta.style.width = '95vw';
+              carta.style.height = 'calc(100vh - 30px)';
+            }, 1700);
+          }
+          carta.addEventListener('animationend', ()=>{ isAnimating=false; cartaAbierta=true; }, { once:true });
+          setTimeout(crearCorazones, 800);
+        } else {
+          carta.style.top = '';
+          carta.style.transform = '';
+          carta.style.width = '';
+          carta.style.height = '';
+          void carta.offsetWidth;
+
+          envoltura.classList.add('cerrando');
+          if (sonido){ sonido.pause(); sonido.currentTime = 0; }
+          carta.addEventListener('animationend', ()=>{
+            envoltura.classList.remove('abierto','cerrando');
+            isAnimating=false; cartaAbierta=false;
+          }, { once:true });
+        }
+      }
+
+      document.addEventListener('click', (e)=>{
+        if (isAnimating) return;
+        const clickEnSobre = e.target.closest('.envoltura-sobre');
+        const clickEnCarta = e.target.closest('.carta');
+
+        if (!cartaAbierta){
+          if (clickEnSobre && !clickEnSobre.classList.contains('abierto')) gestionarAnimacion('abrir');
+        } else {
+          if ((esMovil && clickEnCarta) || !clickEnCarta) gestionarAnimacion('cerrar');
+        }
+      });
+
+      function crearCorazones(){
+        if (!envoltura.classList.contains('abierto') || envoltura.classList.contains('cerrando')) return;
+        const contenedor = document.body, cantidad = 30, emojis = ['❤️','💖','💕','✨','💜','💙','💚'];
+        const { left, top, width, height } = envoltura.getBoundingClientRect();
+        const startX = left + width/2, startY = top + height/2;
+
+        for (let i=0;i<cantidad;i++){
+          setTimeout(()=>{
+            if (!cartaAbierta) return;
+            const corazon = document.createElement('div');
+            corazon.className = 'corazon-magico';
+            corazon.innerHTML = emojis[i % emojis.length];
+            corazon.style.left = `${startX}px`; corazon.style.top = `${startY}px`;
+
+            const dur = Math.random()*2 + 3, fs = Math.random()*15 + 15;
+            const xEnd = (Math.random()-0.5)*window.innerWidth*1.2;
+            const yEnd = (Math.random()-0.5)*window.innerHeight*1.2;
+            const sEnd = Math.random()*0.5 + 0.25;
+            const rEnd = (Math.random()-0.5)*720;
+            const xMid = (Math.random()-0.5)*200;
+            const yMid = (Math.random()-0.5)*200;
+            const rMid = (Math.random()-0.5)*360;
+
+            corazon.style.setProperty('--dur', `${dur}s`);
+            corazon.style.setProperty('--fs', `${fs}px`);
+            corazon.style.setProperty('--x-end', `${xEnd}px`);
+            corazon.style.setProperty('--y-end', `${yEnd}px`);
+            corazon.style.setProperty('--s-end', sEnd);
+            corazon.style.setProperty('--r-end', `${rEnd}deg`);
+            corazon.style.setProperty('--x-mid', `${xMid}px`);
+            corazon.style.setProperty('--y-mid', `${yMid}px`);
+            corazon.style.setProperty('--r-mid', `${rMid}deg`);
+
+            contenedor.appendChild(corazon);
+            setTimeout(()=>corazon.remove(), dur*1000);
+          }, i*50);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
